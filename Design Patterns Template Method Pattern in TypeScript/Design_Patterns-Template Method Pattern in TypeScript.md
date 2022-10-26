@@ -1,10 +1,8 @@
-# Паттерны проектирования: паттерн Стратегия в TypeScript
+# Паттерны проектирования: паттерн Шаблонного метода в TypeScript
 
-### Как использовать и реализовать паттерн Стратегия в TypeScript для решения реальных проблем в веб-проектах.
+[Источник](https://medium.com/javascript-in-plain-english/design-patterns-template-method-pattern-in-typescript-ce0c8b158985)
 
-[Источник](https://javascript.plainenglish.io/design-patterns-strategy-pattern-in-typescript-54eda9b40f09)
-
-<img src="./images/img1.jpg" />
+<img src="./images/1.jpeg" />
 <br />
 
 Добро пожаловать в серию **«Паттерны проектирования в TypeScript»**, в которой будет представлен ряд полезных паттернов проектирования в веб-разработке с использованием TypeScript.
@@ -19,139 +17,149 @@
 - [Паттерн Фабричного метода в TypeScript](https://javascript.plainenglish.io/design-patterns-factory-method-pattern-in-typescript-c4c3047a6289)
 - [Паттерн Абстрактной фабрики в TypeScript](https://javascript.plainenglish.io/design-patterns-abstract-factory-pattern-in-typescript-84cd7b002964)
 
-Паттерны проектирования очень важны для веб-разработчиков, которые освоив паттерны становятся способными улучшить качество написания кода. В этой статье я буду использовать **TypeScript**, чтобы рассказать о **паттерне Стратегия**.
+Паттерны проектирования очень важны для веб-разработчиков, которые освоив паттерны становятся способными улучшить качество написания кода. В этой статье я буду использовать **TypeScript**, чтобы рассказать о **паттерне Шаблонного метода**.
 
-Важным функционалом веб-приложений является регистрация и вход в систему. Для регистрации в веб приложении наиболее распространенным способом является использование учетной записи/пароля, электронной почты или номера мобильного телефона. Регистрация и вход в систему являются важными функциями веб-приложений. При регистрации веб-приложения более распространенным способом регистрации является использование учетной записи/пароля, электронной почты или мобильного телефона. И после успешной регистрации пользователь может использовать соответствующий метод для входа (аутентификации).
+CSV (значения, разделенные запятыми) — это относительно простой формат файла с данными. Файлы CSV хранят табличные данные (числа и текст) в виде обычного текста. Процесс обработки данных в формате CSV показан на следующем рисунке: <br /> <img src="./images/2.png" /> <br /> Разобравшись с описанным выше процессом обработки, давайте воспользуемся Node.js для реализации функции анализа CSV-файлов.<br/> **users.csv**
 
 ```
-function login(mode) {
-  if (mode === "account") {
-    loginWithPassword();
-  } else if (mode === "email") {
-    loginWithEmail();
-  } else if (mode === "mobile") {
-    loginWithMobile();
+id,Name
+1,Bytefer
+2,Kakuqo
+```
+
+**parse-csv.ts**
+
+```
+import fs from "fs";
+import path from "path";
+import * as url from "url";
+import { csvParse } from "d3-dsv";
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+const processData = (fileData: any[]) => console.dir(fileData);
+const content = fs.readFileSync(path.join(__dirname, "users.csv"), "utf8");
+const fileData = csvParse(content);
+processData(fileData);
+```
+
+В приведенном выше коде мы импортируем модуль `d3-dsv` для реализации функции парсинга csv. После этого мы используем `esno` для обработки файла **parse-cvs.ts**:<br/>
+
+```
+$ npx esno parse-csv.ts
+```
+
+Когда вы запустите приведенный выше код, на терминале будет получен следующий результат, показанный ниже на рисунке:
+
+```
+[
+  { id: '1', Name: 'Bytefer' },
+  { id: '2', Name: 'Kakuqo' },
+  columns: [ 'id', 'Name' ]
+]
+```
+
+Markdown — это малотребовательный язык разметки, который позволяет писать документы в простом текстовом формате, который легко читать и писать. Но для того, чтобы отобразить документы Markdown на веб-страницах, мы должны преобразовать Markdown-документ в HTML-документ.
+
+Чтобы осуществить вышеописанный процесс построим процедуру обработки следующим образом: <br /> <img src="./images/3.png" /> <br /> Разобравшись с описанной выше процедурой, давайте воспользуемся Node.js для реализации функции парсинга файлов Markdown.
+
+**Users.md**
+
+```
+### Users
+- Bytefer
+- Kakuqo
+```
+
+**parse-md.ts**
+
+```
+import fs from "fs";
+import path from "path";
+import * as url from "url";
+import { marked } from 'marked';
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+const processData = (fileData: any[]) => console.dir(fileData);
+const content = fs.readFileSync(path.join(__dirname, "Users.md"), "utf8");
+const fileData = marked.parse(content);
+processData(fileData);
+```
+
+В приведенном выше коде мы импортируем `marked` модуль для реализации функции парсинга файла Markdown. После этого используем `esno` для обработки файла **parse-md.ts**:
+
+```
+$ npx esno parse-md.ts
+```
+
+После выполнения вышеуказанного кода терминал выведет следующий результат:
+
+```
+'<h3 id="users">Users</h3>\n<ul>\n<li>Bytefer</li>\n<li>Kakuqo</li>\n</ul>\n'
+```
+
+Несмотря на то, что в предыдущих двух примерах анализируются файлы разных типов, сам процесс анализа файлов аналогичен.<br /> <img src="./images/4.png" /> <br />
+
+Весь процесс состоит из трех основных шагов: **чтение файла, парсинг файла и обработка данных**. Для этой процедуры обработки файлов мы можем ввести паттерн Шаблонного метода, чтобы инкапсулировать последовательность обработки, состоящую из трех вышеуказанных шагов.
+
+Паттерн Шаблонного метода состоит из двух частей: **абстрактного родительского класса и конкретного подкласса реализации**. Обычно структура алгоритма подкласса инкапсулируется в абстрактный родительский класс, который также включает в себя реализацию некоторых общедоступных методов и порядок выполнения всех методов в инкапсулированном подклассе. Наследуя этот абстрактный класс, подклассы также наследуют всю структуру алгоритма и могут переопределить методы родительского класса.
+
+Теперь давайте посмотрим, как реализовать анализатор CSV и анализатор Markdown с использованием паттерна Шаблонного метода.
+
+Чтобы лучше понять следующий код, давайте рассмотрим диаграмму UML, описывающую взаимные связи между классами: <br /> <img src="./images/5.png" /> <br /> На приведенном выше рисунке мы определяем абстрактный класс `FileParser`, а затем определяем два подкласса реализации - `CsvParser` и `MarkdownParser`.<br /> **Класс FileParser**
+
+```
+abstract class FileParser {
+  // Template Method
+  parse(filePath: string) {
+    let content = this.readFile(filePath);
+    let fileData = this.parseFile(content);
+    this.processData(fileData);
   }
-}
-```
-
-Иногда веб-приложение может поддерживать другие методы входа, например, в дополнение к методу входа по электронной почте, страница входа на Medium также поддерживает методы входа сторонних платформ, таких как Google, Facebook, Apple и Twitter.
-
-<img src="./images/img2.png" />
-<br />
-
-В дальнейшем, для поддержки новых сторонних методов входа нам нужно будет снова и снова изменять и дополнять существующую `login` функцию, которая обслуживает процесс входа в веб-приложение:
-
-```
-function login(mode) {
-  if (mode === "account") {
-    loginWithPassword();
-  } else if (mode === "email") {
-    loginWithEmail();
-  } else if (mode === "mobile") {
-    loginWithMobile();
-  } else if (mode === "google") {
-    loginWithGoogle();
-  } else if (mode === "facebook") {
-    loginWithFacebook();
-  } else if (mode === "apple") {
-    loginWithApple();
-  } else if (mode === "twitter") {
-    loginWithTwitter();
-  }
-}
-```
-
-Если мы продолжим и далее добавлять или изменять методы входа в систему, мы обнаружим, что функцию `login` входа в систему становится все труднее поддерживать. И для решения данной проблемы можно использовать паттерн Стратегия, в котором мы сможем инкапсулировать различные методы входа в веб-приложение в разные стратегии входа.
-
-Чтобы лучше понять код, который я приведу далее, давайте сначала посмотрим на соответствующую диаграмму UML: <img src="./images/img3.png" /> <br />
-
-На приведенном выше рисунке мы определяем интерфейс `Strategy`, а затем на основе этого интерфейса `Strategy` реализуем две стратегии входа - через **Twitter** и **через учетную запись/пароль**.
-
-**Интерфейс Strategy**
-
-```
-interface Strategy {
-  authenticate(args: any[]): boolean;
-}
-```
-
-**Twitter Strategy класс**
-
-```
-class TwitterStrategy implements Strategy {
-  authenticate(args: any[]) {
-    const [token] = args;
-    if (token !== "tw123") {
-      console.error("Twitter account authentication failed!");
-      return false;
+  readFile(filePath: string) {
+    if (fs.existsSync(filePath)) {
+      return fs.readFileSync(filePath, "utf8");
     }
-    console.log("Twitter account authentication succeeded!");
-    return true;
+  }
+  abstract parseFile(fileContent: string): any;
+  processData(fileData: any[]) {
+    console.log(fileData);
   }
 }
 ```
 
-**LocalStrategy класс**
+Метод `parse` в абстрактном классе `FileParser` — это так называемый шаблонный метод, в который мы будем инкапсулировать один из процессов обработки файла. <br /> **Класс CsvParser**
 
 ```
-class LocalStrategy implements Strategy {
-  authenticate(args: any[]) {
-    const [username, password] = args;
-    if (username !== "bytefer" && password !== "666") {
-      console.log("Incorrect username or password!");
-      return false;
-    }
-    console.log("Account and password authentication succeeded!");
-    return true;
+class CsvParser extends FileParser {
+  parseFile(fileContent: string) {
+    return csvParse(fileContent);
   }
 }
 ```
 
-После того как мы описали различные стратегии входа в систему, мы определяем класс Authenticator для переключения между различными стратегиями входа и выполнения соответствующих операций аутентификации.
-
-**Класс Authenticator**
+<br /> **Класс MarkdownParser**
 
 ```
-class Authenticator {
-  strategies: Record<string, Strategy> = {};
-  use(name: string, strategy: Strategy) {
-    this.strategies[name] = strategy;
-  }
-  authenticate(name: string, ...args: any) {
-    if (!this.strategies[name]) {
-      console.error("Authentication policy has not been set!");
-      return false;
-    }
-    return this.strategies[name].authenticate.apply(null, args);
+class MarkdownParser extends FileParser {
+  parseFile(fileContent: string) {
+    return marked.parse(fileContent);
   }
 }
 ```
 
-После этого мы можем использовать различные методы входа для аутентификации пользователя с помощью следующего кода:
+С помощью этих двух классов `CsvParser` и `MarkdownParser` мы можем анализировать файлы CSV и Markdown следующим кодом: <br />
 
 ```
-const auth = new Authenticator();
-auth.use("twitter", new TwitterStrategy());
-auth.use("local", new LocalStrategy());
-function login(mode: string, ...args: any) {
-  return auth.authenticate(mode, args);
-}
-login("twitter", "123");
-login("local", "bytefer", "666");
+const csvParser = new CsvParser();
+csvParser.parse(path.join(__dirname, "Users.csv"));
+const mdParser = new MarkdownParser();
+mdParser.parse(path.join(__dirname, "Users.md"));
 ```
 
-Когда вы запустите приведенный выше код, вы получите соответствующий ему вывод, показанный ниже на рисунке: <img src="./images/img4.png" /> <br />
+После запуска этого кода вы получите следующий результат: <br /> <img src="./images/6.png" /> <br />
 
-Кроме задачи аутентификации при входе паттерн Стратегия можно использовать при решении задач проверки полей формы. А также - для оптимизации проблем со слишком большим количеством ветвей if else.
+Используя паттерн Шаблонного метода, мы переиспользуем код парсинга файлов CSV и Markdown. Более того, с помощью абстрактного класса `FileParser` мы можем легко разрабатывать новые различные парсеры для других типов файлов.
 
-Если вы используете Node.js для разработки сервисов аутентификации, обратите внимание на модуль [passport.js](https://www.passportjs.org/):
+Итак, давайте подытожим сценарии использования паттерна Шаблонного метода:
 
-> **[!WARNING] ЗДЕСЬ ПЕРЕКРЕСТНАЯ ССЫЛКА НА САЙТ passportjs.org.**
+- Если общие шаги алгоритма постоянны, но некоторые части (шаги) алгоритма являются различными по своей внутренней реализации, то паттерн Шаблонного метода удобно использовать для абстрагирования от таких варьируемых частей алгоритма для реализации внутри отдельных подклассов. <br />
 
-Этот модуль очень мощный и в настоящее время поддерживает до 538 стратегий аутентификации: <img src="./images/img5.png" /> <br />
-
-Итак, подытожим сценарии использования паттерна Стратегия:
-
-- Когда системе необходимо динамически выбирать один из нескольких алгоритмов, каждый алгоритм может быть инкапсулирован в отдельный, созданный для него, класс стратегии.
-- Когда несколько классов отличаются только поведением, и вы сможете использовать паттерн Стратегия для динамического выбора конкретного поведения, которое будет выполняться во время выполнения. <br /> Если у вас есть какие-либо вопросы, пожалуйста, пишите мне. В дальнейшем я продолжу знакомить вас с другими паттернами, и если вам интересно, подпишитесь на меня в Medium или Twitter.
+Если у вас есть какие-либо вопросы, пожалуйста, пишите мне. В дальнейшем я продолжу знакомить вас с другими паттернами, и если вам интересно, подпишитесь на меня в Medium или Twitter.
