@@ -1,6 +1,8 @@
-# Паттерны проектирования: паттерн Цепочка Обязанностей в TypeScript
+# Паттерны проектирования: паттерн Наблюдатель в TypeScript
 
-[Источник](https://medium.com/javascript-in-plain-english/design-patterns-chain-of-responsibility-pattern-in-typescript-dba6bdffe456)
+### Осваиваем сценарии реализации и применения паттерна Наблюдатель и паттерна Издатель-Подписчик.
+
+[Источник](https://javascript.plainenglish.io/design-patterns-observer-pattern-in-typescript-f6589f1ce4fc)
 
 <img src="./images/1.jpeg" />
 <br />
@@ -17,132 +19,108 @@
 - [Паттерн Фабричного метода в TypeScript](https://javascript.plainenglish.io/design-patterns-factory-method-pattern-in-typescript-c4c3047a6289)
 - [Паттерн Абстрактной фабрики в TypeScript](https://javascript.plainenglish.io/design-patterns-abstract-factory-pattern-in-typescript-84cd7b002964)
 
-Паттерны проектирования очень важны для веб-разработчиков, которые освоив паттерны становятся способными улучшить качество написания кода. В этой статье я буду использовать **TypeScript**, чтобы рассказать о **паттерне Цепочка Обязанностей**.
+Паттерны проектирования очень важны для веб-разработчиков, которые освоив паттерны становятся способными улучшить качество написания кода. В этой статье я буду использовать TypeScript, чтобы представить **Паттерн Наблюдатель** и **Паттерн Издатель-Подписчик**.
 
-Паттерн Цепочка Обязанностей — это способ избежать связи и взаимного влияния между отправителем и получателем запроса, предоставляя нескольким объектам возможность обрабатывать запрос. В паттерне Цепочка Обязанностей многочисленные объекты ссылаются последовательно друг на друга посредством ссылки от одного объекта к последующему объекту, чтобы сформировать цепочку. Запрос передаются по цепочке до тех пор, пока один из объектов в цепочке не осуществит обработку этого запроса.
+## Паттерн Наблюдатель
+
+Паттерн Наблюдатель (Observer) широко используется в веб-приложениях - `MutationObserver`, `IntersectionObserver`, `PerformanceObserver`, `ResizeObserver`, `ReportingObserver`. Все эти API можно рассмотреть как примеры Паттерна Наблюдатель. Кроме того, этот паттерн также используется для мониторинга событий и реагирования на мутации данных (например, при изменении данных и автоматическом обновлении страницы). <br /> Паттерн Наблюдатель определяет отношение **«один ко многим»**, и этим позволяет нескольким объектам-наблюдателям одновременно отслеживать наблюдаемый субъект. При изменении состояния наблюдаемого субъекта все объекты-наблюдатели будут уведомлены о таком изменении, чтобы они в свою очередь могли автоматически обновить свое состояние. В Паттерне Наблюдатель есть две основные роли: **Субъект и Наблюдатель**.
 
 <img src="./images/2.png" />
 <br />
 
-Возьмем, к примеру, согласование отпуска в нашей компании: когда я прошу выходной, его нужно только утвердить тимлидом, и нет необходимости передавать его вышестоящему руководителю и директору. Разные должности в компании имеют разные обязанности и полномочия. Если звено в Цепочке Обязанностей не может обработать текущий запрос и в цепочке имеется следующее звено – то запрос будет перенаправлен на это последующее звено для обработки.
-
-В процессе разработки программного обеспечения для Цепочки Обязанностей распространенным сценарием применения является мидлваре. Давайте посмотрим, как Цепочку Обязанностей используют для обработки запросов.
-
-Чтобы лучше понять последующий код, необходимо сначала необходимо сначала внимательно рассмотреть диаграмму UML, описывающую этот код:
+На диаграмме выше в качестве Субъекта выступает моя статья (Article), а Наблюдателями являются Chris1993 и Bytefish. Паттерн Наблюдатель поддерживает простейшую связь в режиме широковещательной передачи, и поэтому все наблюдатели автоматически уведомляются о публикации новой статьи. Чтобы лучше понять дальнейший код, давайте сначала изучим соответствующую ему диаграмму UML:
 
 <img src="./images/3.png" />
 <br />
 
-На приведенном выше рисунке мы определяем интерфейс `Handler`. Этот интерфейс в свою очередь определяет следующие два метода:
-
-- **use(h: Handler): Handler** => Используется для регистрации обработчика (мидлваре)
-- **get(url: string, callback: (data: any) => void): void** => Регистрирует обработчик запроса на получение
-
-**Интерфейс обработчика**
+На приведенном выше рисунке мы с помощью механизмов `интерфейса` определяем непосредственно интерфейс `Observer` и интерфейс `Subject` соответственно, которые используются для описания объектов **Observer** и **Subject**. **Observer интерфейс**
 
 ```
-interface Handler {
-  use(h: Handler): Handler;
-  get(url: string, callback: (data: any) => void): void;
+interface Observer {
+  notify(article: Article): void;
 }
 ```
 
-Затем мы определим абстрактный класс `AbstractHandler`, который инкапсулирует логику обработки Цепочки Обязанностей. Другими словами, этот абстрактный класс соединяет обработчики, чтобы сформировать цепочку последовательных ссылок. <br/>**Абстрактный класс AbstractHandler**
+**Subject интерфейс**
 
 ```
-abstract class AbstractHandler implements Handler {
-  next!: Handler;
-  use(h: Handler) {
-    this.next = h;
-    return this.next;
-  }
-  get(url: string, callback: (data: any) => void) {
-    if (this.next) {
-      return this.next.get(url, callback);
-    }
-  }
+interface Subject {
+  observers: Observer[];
+  addObserver(observer: Observer): void;
+  deleteObserver(observer: Observer): void;
+  notifyObservers(article: Article): void;
 }
 ```
 
-На основе абстрактного класса `AbstractHandler` мы определяем классы `AuthMiddleware` и `LoggerMiddleware`. Мидлваре `AuthMiddleware` используется для обработки аутентификации пользователей, а мидлваре `LoggerMidddleware` используется для вывода журналов запросов.
-
-**Класс AuthMiddleware**
+Затем мы определяем классы `ConcreteObserver` и `ConcreteSubject`, в которых реализуются вышеуказанные интерфейсы: <br />**ConcreteObserver класс**
 
 ```
-class AuthMiddleware extends AbstractHandler {
-  isAuthenticated: boolean;
-  constructor(username: string, password: string) {
-    super();
-    this.isAuthenticated = false;
-    if (username === "bytefer" && password === "666") {
-      this.isAuthenticated = true;
-    }
-  }
-  get(url: string, callback: (data: any) => void) {
-    if (this.isAuthenticated) {
-      return super.get(url, callback);
-    } else {
-      throw new Error("Not Authorized");
-    }
+class ConcreteObserver implements Observer {
+  constructor(private name: string) {}
+  notify(article: Article) {
+    console.log(`"Article: ${article.title}" has been sent to  ${this.name}.`);
   }
 }
 ```
 
-**Класс LoggerMiddleware**
+<br />**ConcreteSubject класс**
 
 ```
-class LoggerMiddleware extends AbstractHandler {
-  get(url: string, callback: (data: any) => void) {
-    console.log(`Request url is: ${url}`);
-    return super.get(url, callback);
+class ConcreteSubject implements Subject{
+  public observers: Observer[] = [];
+  public addObserver(observer: Observer): void {
+    this.observers.push(observer);
+  }
+  public deleteObserver(observer: Observer): void {
+    const n: number = this.observers.indexOf(observer);
+    n != -1 && this.observers.splice(n, 1);
+  }
+  public notifyObservers(article: Article): void {
+    this.observers.forEach((observer) => observer.notify(article));
   }
 }
 ```
 
-Вместе с классами `AuthMiddleware` и `LoggerMiddleware` давайте определим класс Route для регистрации созданных мидлваре.
-
-**Класс Route**
+Давайте проверим работу функций в наших классах на примере вот таких команд:
 
 ```
-class Route extends AbstractHandler {
-  urlDataMap: { [key: string]: any };
-  constructor() {
-    super();
-    this.urlDataMap = {
-      "/api/todos": [
-        { title: "Learn Design Pattern" },
-      ],
-      "/api/random": () => Math.random(),
-    };
-  }
- get(url: string, callback: (data: any) => void) {
-    super.get(url, callback);
-  if (this.urlDataMap.hasOwnProperty(url)) {
-      const value = this.urlDataMap[url];
-      const result = typeof value === "function" ? value() : value;
-      callback(result);
-    }
-  }
-}
-```
-
-После определения класса `Route` мы можем использовать его для регистрации имеющихся мидлваре следующим образом:
-
-```
-const route = new Route();
-route.use(new AuthMiddleware("bytefer", "666"))
- .use(new LoggerMiddleware());
-route.get("/api/todos", (data) => {
-  console.log(JSON.stringify({ data }, null, 2));
+const subject: Subject = new ConcreteSubject();
+const chris1993 = new ConcreteObserver("Chris1993");
+const bytefish = new ConcreteObserver("Bytefish");
+subject.addObserver(chris1993);
+subject.addObserver(bytefish);
+subject.notifyObservers({
+  author: "Bytefer",
+  title: "Observer Pattern in TypeScript",
+  url: "https://medium.com/***",
 });
-route.get("/api/random", (data) => {
-  console.log(data);
+subject.deleteObserver(bytefish);
+subject.notifyObservers({
+  author: "Bytefer",
+  title: "Adapter Pattern in TypeScript",
+  url: "https://medium.com/***",
 });
 ```
 
-<img src="./images/4.png" /> <br /> Когда вы запустите приведенный выше код, вы получите соответствующий ему вывод, показанный ниже на рисунке: <img src="./images/5.png" /> <br />
+В результате выполнения вышеуказанного кода, терминал выведет такой результат:
 
-Итак, подытожим сценарии использования паттерна Цепочка Обязанностей:
+```
+"Article: Observer Pattern in TypeScript" has been sent to Chris1993.
+"Article: Observer Pattern in TypeScript" has been sent to Bytefish.
+"Article: Adapter Pattern in TypeScript" has been sent to Chris1993.
+```
 
-- Когда системе необходимо отправить запрос одному из нескольких объектов без явного указания получателя.
-- Когда есть несколько объектов, которые могут обрабатывать запрос, и какой именно объект обрабатывает запрос, автоматически будет определятся только уже во время выполнения - клиенту нужно только отправить запрос в цепочку. <br />Если у вас есть какие-либо вопросы, пожалуйста, пишите мне. В дальнейшем я продолжу знакомить вас с другими паттернами, и если вам интересно, подпишитесь на меня в Medium или Twitter.
+Представим, что в настоящее время я пишу на две основные тематики - JavaScript и TypeScript. Поэтому, если я захочу опубликовать новую статью, то об этом необходимо уведомить только читателей, интересующихся JavaScript, или только читателей, интересующихся TypeScript. Если мы используем Паттерн Наблюдатель, нам следует создать два разных Субъекта. Но с другой стороны можно поменять решение и использовать **паттерн Издатель-Подписчик**. <br />**Паттерн Издатель-Подписчик** <br />В архитектуре программного обеспечения Издатель-Подписчик — это парадигма обмена сообщениями, в которой отправители сообщений (называемые издателями) не отправляют сообщения напрямую конкретным получателям (называемые подписчиками). Вместо этого опубликованные сообщения группируются по разным категориям и отправляются к разным подписчикам. Аналогичным образом подписчики могут интересоваться одной или нескольким категориями сообщений и получать только такие интересующие их сообщения, не зная о существовании издателей. <br />В паттерне Издатель-Подписчик есть три основные роли: Издатели, Каналы и Подписчики.
+
+<img src="./images/4.png" /> <br /> На приведенном выше рисунке Издатель — это Bytefer, тема A и тема B в Каналах соответствуют теме JavaScript и теме TypeScript соответственно, а Подписчики — Chris1993, Bytefish и т. д. Давайте реализуем класс EventEmitter на основе паттерна Издатель-Подписчик: ЗДЕСЬ ИДЕТ ССЫЛКА НА КОД!!!! После определения класса `EventEmitter` мы можем использовать его следующим образом:
+
+```
+const eventEmitter = new EventEmitter();
+eventEmitter.subscribe("ts",
+  (msg) => console.log(`Received：${msg}`));
+eventEmitter.publish("ts", "Observer pattern");
+eventEmitter.unsubscribe("ts");
+eventEmitter.publish("ts", "Pub-Sub pattern");
+```
+
+Если запустить на исполнение вышеприведенный код то терминал выведет следующий результат: `Received: Observer pattern`. <br />В событийно-ориентированной архитектуре паттерн Издатель-Подписчик играет важную роль. Конкретная реализация этого паттерна может использоваться в качестве шины событий для реализации обмена сообщениями между различными компонентами или модулями в одной системе. Для популярной архитектуры подключаемых модулей паттерн Издатель-Подписчик можно использовать для реализации обмена сообщениями между различными подключаемыми модулями. <br />Надеюсь, после прочтения этой статьи у вас появилось определенное представление о паттерне Наблюдателя и паттерне Издатель-Подписчик. Если у вас есть какие-либо вопросы, пожалуйста, пишите мне. В дальнейшем я продолжу знакомить вас с другими паттернами, и если вам интересно, подпишитесь на меня в Medium или Twitter.
