@@ -1,6 +1,8 @@
-# Паттерны проектирования: паттерн Цепочка Обязанностей в TypeScript
+# Паттерны проектирования: паттерн Фабричного метода в TypeScript
 
-[Источник](https://medium.com/javascript-in-plain-english/design-patterns-chain-of-responsibility-pattern-in-typescript-dba6bdffe456)
+### Освойте паттерн Фабричного метода и создавайте объекты с легкостью.
+
+[Источник](https://medium.com/javascript-in-plain-english/design-patterns-factory-method-pattern-in-typescript-c4c3047a6289)
 
 <img src="./images/1.jpeg" />
 <br />
@@ -17,132 +19,92 @@
 - [Паттерн Фабричного метода в TypeScript](https://javascript.plainenglish.io/design-patterns-factory-method-pattern-in-typescript-c4c3047a6289)
 - [Паттерн Абстрактной фабрики в TypeScript](https://javascript.plainenglish.io/design-patterns-abstract-factory-pattern-in-typescript-84cd7b002964)
 
-Паттерны проектирования очень важны для веб-разработчиков, которые освоив паттерны становятся способными улучшить качество написания кода. В этой статье я буду использовать **TypeScript**, чтобы рассказать о **паттерне Цепочка Обязанностей**.
+Паттерны проектирования очень важны для веб-разработчиков, которые освоив паттерны становятся способными улучшить качество написания кода. В этой статье я буду использовать **TypeScript**, чтобы рассказать о **паттерне Фабричного метода**.
 
-Паттерн Цепочка Обязанностей — это способ избежать связи и взаимного влияния между отправителем и получателем запроса, предоставляя нескольким объектам возможность обрабатывать запрос. В паттерне Цепочка Обязанностей многочисленные объекты ссылаются последовательно друг на друга посредством ссылки от одного объекта к последующему объекту, чтобы сформировать цепочку. Запрос передаются по цепочке до тех пор, пока один из объектов в цепочке не осуществит обработку этого запроса.
+Паттерн Фабричного метода, также известный как паттерн Фабрики, иногда еще называют полиморфным фабричным паттерном, который в свою очередь относится к порождающим паттернам.
+
+В паттерне Фабричного метода родительский класс фабрики отвечает за определение публичного интерфейса для создания продуктовых объектов, а подкласс фабрики отвечает за создание специфических продуктовых объектов. **Цель этого состоит в том, чтобы оставить создание специфических свойств продукта подклассу фабрики**. То есть именно в подклассе фабрики определить, какой конкретный класс продукта должен быть создан.
 
 <img src="./images/2.png" />
 <br />
 
-Возьмем, к примеру, согласование отпуска в нашей компании: когда я прошу выходной, его нужно только утвердить тимлидом, и нет необходимости передавать его вышестоящему руководителю и директору. Разные должности в компании имеют разные обязанности и полномочия. Если звено в Цепочке Обязанностей не может обработать текущий запрос и в цепочке имеется следующее звено – то запрос будет перенаправлен на это последующее звено для обработки.
+На картинке выше я смоделировал процесс покупки автомобиля пользователем. Bytefer и Chris1993 заказали модели SuperX01 и SuperX02 на фабриках SuperX01 и SuperX02 соответственно, а затем фабрика произвела соответствующие модели и доставила их пользователям после завершения производства.
 
-В процессе разработки программного обеспечения для Цепочки Обязанностей распространенным сценарием применения является мидлваре. Давайте посмотрим, как Цепочку Обязанностей используют для обработки запросов.
+Давайте посмотрим, как можно использовать Паттерн Фабрики для описания процесса производства конкретной модели автомобиля на автомобильном заводе.
 
-Чтобы лучше понять последующий код, необходимо сначала необходимо сначала внимательно рассмотреть диаграмму UML, описывающую этот код:
+Чтобы лучше понять последующий код, давайте сначала внимательно изучим соответствующую диаграмму UML:
 
 <img src="./images/3.png" />
 <br />
 
-На приведенном выше рисунке мы определяем интерфейс `Handler`. Этот интерфейс в свою очередь определяет следующие два метода:
+Паттерн Фабричного метода включает следующие роли:
 
-- **use(h: Handler): Handler** => Используется для регистрации обработчика (мидлваре)
-- **get(url: string, callback: (data: any) => void): void** => Регистрирует обработчик запроса на получение
+- **Product (Vehicle)**: абстрактный продукт
+- **Concrete Product (SuperX01)**: конкретный продукт
+- **Factory (VehicleFactory)**: абстрактная фабрика
+- **ConcreteFactory(SuperX01Factory)**: конкретная фабрика
 
-**Интерфейс обработчика**
+Затем мы определяем абстрактный класс `Vehicle` и два его подкласса `SuperX01` и `SuperX02` для конкретных двух различных типов транспортных средств.
 
 ```
-interface Handler {
-  use(h: Handler): Handler;
-  get(url: string, callback: (data: any) => void): void;
+abstract class Vehicle {
+  abstract run(): void;
 }
-```
-
-Затем мы определим абстрактный класс `AbstractHandler`, который инкапсулирует логику обработки Цепочки Обязанностей. Другими словами, этот абстрактный класс соединяет обработчики, чтобы сформировать цепочку последовательных ссылок. <br/>**Абстрактный класс AbstractHandler**
-
-```
-abstract class AbstractHandler implements Handler {
-  next!: Handler;
-  use(h: Handler) {
-    this.next = h;
-    return this.next;
+class SuperX01 extends Vehicle {
+  run(): void {
+    console.log("SuperX01 start");
   }
-  get(url: string, callback: (data: any) => void) {
-    if (this.next) {
-      return this.next.get(url, callback);
-    }
+}
+class SuperX02 extends Vehicle {
+  run(): void {
+    console.log("SuperX02 start");
   }
 }
 ```
 
-На основе абстрактного класса `AbstractHandler` мы определяем классы `AuthMiddleware` и `LoggerMiddleware`. Мидлваре `AuthMiddleware` используется для обработки аутентификации пользователей, а мидлваре `LoggerMidddleware` используется для вывода журналов запросов.
-
-**Класс AuthMiddleware**
+Затем мы определяем класс `VehicleFactory` для представления завода по производству автомобилей. **Абстрактный класс содержит абстрактный метод `produceVehicle`, который является так называемым фабричным методом**.
 
 ```
-class AuthMiddleware extends AbstractHandler {
-  isAuthenticated: boolean;
-  constructor(username: string, password: string) {
-    super();
-    this.isAuthenticated = false;
-    if (username === "bytefer" && password === "666") {
-      this.isAuthenticated = true;
-    }
+abstract class VehicleFactory {
+  abstract produceVehicle(): Vehicle;
+}
+```
+
+На основе абстрактного класса `VehicleFactory` мы определяем фабричные классы `SuperX01Factory` и `SuperX02Factory` для производства моделей автомобилей **SuperX01** и **SuperX02**:
+
+```
+class SuperX01Factory extends VehicleFactory {
+  produceVehicle(): Vehicle {
+    return new SuperX01();
   }
-  get(url: string, callback: (data: any) => void) {
-    if (this.isAuthenticated) {
-      return super.get(url, callback);
-    } else {
-      throw new Error("Not Authorized");
-    }
+}
+class SuperX02Factory extends VehicleFactory {
+  produceVehicle(): Vehicle {
+    return new SuperX02();
   }
 }
 ```
 
-**Класс LoggerMiddleware**
+После создания фабричных классов `SuperX01Factory` и `SuperX02Factory` мы можем начать производить автомобили:
 
 ```
-class LoggerMiddleware extends AbstractHandler {
-  get(url: string, callback: (data: any) => void) {
-    console.log(`Request url is: ${url}`);
-    return super.get(url, callback);
-  }
-}
+const superX01Factory = new SuperX01Factory();
+const superX02Factory = new SuperX02Factory();
+const superX01Vehicle = superX01Factory.produceVehicle();
+const superX02Vehicle = superX02Factory.produceVehicle();
+superX01Vehicle.run();
+superX02Vehicle.run();
 ```
 
-Вместе с классами `AuthMiddleware` и `LoggerMiddleware` давайте определим класс Route для регистрации созданных мидлваре.
-
-**Класс Route**
+Если запустить приведенный выше код, то в терминале вы увидите следующий результат:
 
 ```
-class Route extends AbstractHandler {
-  urlDataMap: { [key: string]: any };
-  constructor() {
-    super();
-    this.urlDataMap = {
-      "/api/todos": [
-        { title: "Learn Design Pattern" },
-      ],
-      "/api/random": () => Math.random(),
-    };
-  }
- get(url: string, callback: (data: any) => void) {
-    super.get(url, callback);
-  if (this.urlDataMap.hasOwnProperty(url)) {
-      const value = this.urlDataMap[url];
-      const result = typeof value === "function" ? value() : value;
-      callback(result);
-    }
-  }
-}
+SuperX01 start
+SuperX02 start
 ```
 
-После определения класса `Route` мы можем использовать его для регистрации имеющихся мидлваре следующим образом:
+Итак, давайте подведем итоги и определим сценарии использования паттерна Фабричного метода:
 
-```
-const route = new Route();
-route.use(new AuthMiddleware("bytefer", "666"))
- .use(new LoggerMiddleware());
-route.get("/api/todos", (data) => {
-  console.log(JSON.stringify({ data }, null, 2));
-});
-route.get("/api/random", (data) => {
-  console.log(data);
-});
-```
+- В паттерне Фабричного метода абстрактный фабричный класс должен только предоставить интерфейс для создания продуктов, а его подклассы определяют конкретные создаваемые объекты. Используя объектно-ориентированный полиморфизм и принцип подстановки Лисков, в ходе работы программы, объекты подкласса переопределяют объекты родительского класса, делая расширение системы более простой задачей. <br />
 
-<img src="./images/4.png" /> <br /> Когда вы запустите приведенный выше код, вы получите соответствующий ему вывод, показанный ниже на рисунке: <img src="./images/5.png" /> <br />
-
-Итак, подытожим сценарии использования паттерна Цепочка Обязанностей:
-
-- Когда системе необходимо отправить запрос одному из нескольких объектов без явного указания получателя.
-- Когда есть несколько объектов, которые могут обрабатывать запрос, и какой именно объект обрабатывает запрос, автоматически будет определятся только уже во время выполнения - клиенту нужно только отправить запрос в цепочку. <br />Если у вас есть какие-либо вопросы, пожалуйста, пишите мне. В дальнейшем я продолжу знакомить вас с другими паттернами, и если вам интересно, подпишитесь на меня в Medium или Twitter.
+Если у вас есть какие-либо вопросы, пожалуйста, пишите мне. В дальнейшем я продолжу знакомить вас с другими паттернами, и если вам интересно, подпишитесь на меня в Medium или Twitter.
